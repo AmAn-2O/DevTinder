@@ -147,20 +147,92 @@ const User = require("./models/user.js");
 //   }
 // });
 
+app.use(express.json()); //middlewar for reading the json file it reads the json object and convert this into js object
 app.post("/signup", async (req, res) => {
-  const userObj = {
-    firstName: "Amandeep",
-    lastName: "Rajput",
-    emailId: "aman@gmail.com",
-    password: "Amandeep@123",
-  };
+  // const userObj = {
+  //   firstName: "Amandeep",
+  //   lastName: "Rajput",
+  //   emailId: "aman@gmail.com",
+  //   password: "Amandeep@123",
+  // };
 
-  const user = new User(userObj);
+  const user = new User(req.body);
   try {
     await user.save();
     res.send("User added successfully");
   } catch (err) {
     res.status(400).send("Error Saving the User" + err.message);
+  }
+});
+
+//Get user by _id
+
+app.get("/userId", async (req, res) => {
+  const userId = req.query.userId;
+  console.log(userId);
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    res.send(user);
+  } catch (err) {
+    res.status(404).send("User not found");
+  }
+});
+
+//delete the user
+//delete the user
+app.delete("/user", async (req, res) => {
+  const userId = req.query.userId;
+
+  try {
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return res.status(404).send("User not found");
+    }
+    res.send("User Deleted Successfully");
+  } catch (err) {
+    res.status(404).send("User not found");
+  }
+});
+
+//Get  user by email
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.emailId;
+  try {
+    const user = await User.find({ emailId: userEmail });
+    if (user.length === 0) {
+      res.status(404).send("User not found");
+    } else {
+      res.send(user);
+    }
+  } catch (err) {
+    res.status(400).send("Something Went wrong");
+  }
+});
+//Feed API - Get /feed - get all the users from the database
+app.get("/feeds", async (req, res) => {
+  try {
+    const user = await User.find({}); //when pass the emplty braces it give  you all the data
+
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("Something Went wrong");
+  }
+});
+
+//update the data of the user
+
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    await User.findByIdAndUpdate(userId, data);
+    res.send("User Updated Successfully");
+  } catch (err) {
+    res.status(400).send("Something went wrong");
   }
 });
 
