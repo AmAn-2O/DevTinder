@@ -225,14 +225,28 @@ app.get("/feeds", async (req, res) => {
 
 //update the data of the user
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req?.params.userId;
   const data = req.body;
+
   try {
-    await User.findByIdAndUpdate(userId, data);
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+
+    if (!isUpdateAllowed) {
+      throw new Error("Update is not allowed");
+    }
+    if (data?.skills.length > 10) {
+      throw new Error("Skills cannot be more than 10");
+    }
+    await User.findByIdAndUpdate(userId, data, { runValidators: true });
+    //by default validatores are off
     res.send("User Updated Successfully");
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    res.status(400).send("UPDATE FAILED" + err.message);
   }
 });
 
