@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const connectDB = require("./config/database.js");
 const User = require("./models/user.js");
+const { validateSignUpData } = require("./utils/validation.js");
 
 // GET /users ==> middleware chain ==> request handler
 
@@ -149,15 +150,19 @@ const User = require("./models/user.js");
 
 app.use(express.json()); //middlewar for reading the json file it reads the json object and convert this into js object
 app.post("/signup", async (req, res) => {
-  // const userObj = {
-  //   firstName: "Amandeep",
-  //   lastName: "Rajput",
-  //   emailId: "aman@gmail.com",
-  //   password: "Amandeep@123",
-  // };
-
-  const user = new User(req.body);
   try {
+    //Validations of Data
+    validateSignUpData(req);
+
+    // const userObj = {
+    //   firstName: "Amandeep",
+    //   lastName: "Rajput",
+    //   emailId: "aman@gmail.com",
+    //   password: "Amandeep@123",
+    // };
+
+    const user = new User(req.body);
+
     await user.save();
     res.send("User added successfully");
   } catch (err) {

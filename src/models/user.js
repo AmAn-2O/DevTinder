@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -16,6 +17,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid Email Address" + value);
+        }
+      },
     },
     password: {
       type: String,
@@ -38,6 +44,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://dev-admin.cloudstay.app/_next/static/media/Logo.523aec2c.svg",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Invalid Photo URL" + value);
+        }
+      },
     },
     about: {
       type: String,
