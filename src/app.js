@@ -4,6 +4,7 @@ const app = express();
 const connectDB = require("./config/database.js");
 const User = require("./models/user.js");
 const { validateSignUpData } = require("./utils/validation.js");
+const bcrypt = require("bcrypt");
 
 // GET /users ==> middleware chain ==> request handler
 
@@ -154,6 +155,8 @@ app.post("/signup", async (req, res) => {
     //Validations of Data
     validateSignUpData(req);
 
+    const { firstName, lastName, emailId, password } = req.body;
+
     // const userObj = {
     //   firstName: "Amandeep",
     //   lastName: "Rajput",
@@ -161,12 +164,46 @@ app.post("/signup", async (req, res) => {
     //   password: "Amandeep@123",
     // };
 
-    const user = new User(req.body);
+    //Encrypt the password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // const user = new User(req.body); //bad way of creating a new instance of the User model
+
+    //Creating a new instance of the User model
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
 
     await user.save();
     res.send("User added successfully");
   } catch (err) {
     res.status(400).send("Error Saving the User" + err.message);
+  }
+});
+
+//login api
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    //find user by email
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      return res.status(404).send("Invalid Email ID");
+    }
+    //check passoword
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      return res.send("Login Successfull");
+    } else {
+      throw new Error("Password is not correct");
+    }
+  } catch (err) {
+    res.status(400).send("Error Login the User" + err.message);
   }
 });
 
